@@ -1,0 +1,87 @@
+﻿@using ToyData.Models;
+@using ToyWeb.Extensions;
+@using Microsoft.AspNetCore.Http
+
+@model PagedResult<ShoppingCart>;
+
+@{
+    ViewBag.Title = "Cart";
+}
+
+<h3>Cart Page</h3>
+<hr />
+
+@if ( @Context.Session.GetObject<List<ShoppingCart>>("cart").Count() != 0)
+{
+    <form asp-action="Index" asp-controller="Cart" method="post">
+    <table class="table table-striped">
+        <tr>
+            <th>Option</th>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Rate</th>
+            <th>Quantity</th>
+            <th>Sub Total </th>
+        </tr>
+        @foreach (ShoppingCart item in @Context.Session.GetObject<List<ShoppingCart>>("cart"))
+        {
+            <tr>
+                <td><a href="@Url.Action("Remove", "Cart", new { id = item.CToy.CToyId })">Remove</a></td>
+                <td>@item.CToy.CToyId</td>
+                <td>@item.CToy.VToyName</td>
+                <td>@item.CToy.VToyDescription</td>
+                <td>@item.CToy.MToyRate</td>
+                <td>@item.SiQty</td>
+                <td>@(item.CToy.MToyRate * item.SiQty)</td>
+            </tr>
+        }
+        <tr>
+            <td align="right" colspan="6"><b>Total Amount</b></td>
+            <td>
+                @{
+                    List<ShoppingCart> cart = Context.Session.GetObject<List<ShoppingCart>>("cart");
+                    var total = cart.Sum(item => item.CToy.MToyRate * item.SiQty);
+                }
+                @total
+            </td>
+        </tr>
+    </table>
+    <br>
+     <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            @for (int pageIndex = 1; pageIndex <= Model.PageCount; pageIndex++)
+            {
+
+                @if (pageIndex != Model.CurrentPage)
+                {
+
+                    <li class="page-item"><a class="page-link" href="javascript:pagerClick(@pageIndex);">@pageIndex</a></li>
+                }
+                else
+                {
+                    <li class="page-item active">
+                        <a class="page-link" href="#">@pageIndex <span class="sr-only">(current)</span></a>
+                    </li>
+                }
+            }
+        </ul>
+    </nav>
+    <input type="hidden" id="currentPageIndex" name="currentPageIndex" />
+    </form>
+}
+else
+{
+    <br />
+    <h3>Cart Empty</h3>
+}
+
+<a href="@Url.Action("Index", "Toy")">Continue Shopping</a>
+
+<script type="text/javascript">
+    function pagerClick(index) {
+        document.getElementById("currentPageIndex").value = index;
+        document.forms[0].submit();
+    }
+</script>
+
